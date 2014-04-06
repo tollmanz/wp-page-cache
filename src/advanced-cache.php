@@ -4,33 +4,6 @@ namespace zdt\wpPageCache;
 
 class PageCache {
 	/**
-	 * The $_SERVER pieces needed to generate the permalink.
-	 *
-	 * @since 0.1.0.
-	 *
-	 * @var   array    Contains 'host', 'path', 'protocol', and 'query'.
-	 */
-	public $key_pieces = array();
-
-	/**
-	 * Current page URL.
-	 *
-	 * @since 0.1.0.
-	 *
-	 * @var   string    The current URL for the view.
-	 */
-	public $permalink = '';
-
-	/**
-	 * The cache key for the current page.
-	 *
-	 * @since 0.1.0.
-	 *
-	 * @var   string    The MD5 hash representing the current page view.
-	 */
-	public $page_key = '';
-
-	/**
 	 * Prefix for the cached items.
 	 *
 	 * @since 0.1.0.
@@ -38,6 +11,15 @@ class PageCache {
 	 * @var   string    A unique identifier for the page cache items.
 	 */
 	public $cache_group = 'zdtpc';
+
+	/**
+	 * Holds the CacheKey object for PageCache.
+	 *
+	 * @since 0.1.0.
+	 *
+	 * @var   CacheKey    Manages the CacheKey object for handling the cache key.
+	 */
+	public $key;
 
 	/**
 	 * Construct the object and set up configuration.
@@ -51,7 +33,24 @@ class PageCache {
 			return;
 		}
 
+		// Instantiate the CacheKey object
+		$this->key = new CacheKey();
+
 		ob_start( array( $this, 'generate_page' ) );
+	}
+
+	/**
+	 * Generates and caches the page.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @param  string    $page_content    The contents produced by the page load.
+	 * @return string                     The contents to echo to the screen.
+	 */
+	function generate_page( $page_content ) {
+		$page_content .= '<!-- Cached at: ' . time() . ' -->';
+		wp_cache_set( $this->key->get_page_key( $_SERVER ), $page_content, $this->get_cache_group(), 500 );
+		return $page_content;
 	}
 
 	/**
@@ -85,16 +84,51 @@ class PageCache {
 	}
 
 	/**
-	 * Generates and caches the page.
+	 * Get the value of the page cache group.
 	 *
 	 * @since  0.1.0.
 	 *
-	 * @param  string    $page_content    The contents produced by the page load.
-	 * @return string                     The contents to echo to the screen.
+	 * @return string    The cache group value.
 	 */
-	function generate_page( $page_content ) {
-		return $page_content;
+	function get_cache_group() {
+		return $this->cache_group;
 	}
+}
+
+/**
+ * Class CacheKey
+ *
+ * Manages building a cache key for a new page.
+ *
+ * @since 0.1.0.
+ */
+class CacheKey {
+	/**
+	 * The $_SERVER pieces needed to generate the permalink.
+	 *
+	 * @since 0.1.0.
+	 *
+	 * @var   array    Contains 'host', 'path', 'protocol', and 'query'.
+	 */
+	public $key_pieces = array();
+
+	/**
+	 * Current page URL.
+	 *
+	 * @since 0.1.0.
+	 *
+	 * @var   string    The current URL for the view.
+	 */
+	public $permalink = '';
+
+	/**
+	 * The cache key for the current page.
+	 *
+	 * @since 0.1.0.
+	 *
+	 * @var   string    The MD5 hash representing the current page view.
+	 */
+	public $page_key = '';
 
 	/**
 	 * Get or generate the current view's key.
@@ -213,17 +247,6 @@ class PageCache {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Get the value of the page cache group.
-	 *
-	 * @since  0.1.0.
-	 *
-	 * @return string    The cache group value.
-	 */
-	function get_cache_group() {
-		return $this->cache_group;
 	}
 }
 
