@@ -175,15 +175,13 @@ class PageCache {
 	 * @return bool                True if partial match is found; false if it is not.
 	 */
 	function in_array_partial( $value, $array ) {
-		$return = false;
-
 		foreach ( $array as $test_value ) {
-			if ( false !== strpos( $test_value, $value ) ) {
-				$return = true;
+			if ( false !== strpos( $value, $test_value ) ) {
+				return true;
 			}
 		}
 
-		return $return;
+		return false;
 	}
 }
 
