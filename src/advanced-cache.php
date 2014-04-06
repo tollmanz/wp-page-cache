@@ -277,10 +277,10 @@ $PageCache = new PageCache();
 
 // Find the page
 $page = $PageCache->get_page( $PageCache->get_key()->get_page_key( $_SERVER ), $PageCache->get_cache_group() );
-
 // If not found, generate and cache the page
 if ( false === $page ) {
 	ob_start( array( $PageCache, 'generate_page' ) );
 } else {
 	echo $page;
+	exit();
 }
