@@ -96,10 +96,18 @@ class PageCache {
 			return false;
 		}
 
+		// If cookie partially matched these values, it will result in a cache exemption
+		$cookie_exemptions = array(
+			'wordpress_logged_in_',
+			'wp-postpass_',
+			'comment_author',
+			'PHPSESSID',
+		);
+
 		// Do not cache when a cookie for a cache exempt visitor is present
 		if ( ! empty( $_COOKIE ) && is_array( $_COOKIE ) ) {
 			foreach ( array_keys( $_COOKIE ) as $cookie ) {
-				if ( 'wp' === substr( $cookie, 0, 2 ) || 'wordpress' === substr( $cookie, 0, 9 ) ) {
+				if ( $this->in_array_partial( $cookie, $cookie_exemptions ) ) {
 					return false;
 				}
 			}
@@ -155,6 +163,27 @@ class PageCache {
 	 */
 	function get_cache_group() {
 		return $this->cache_group;
+	}
+
+	/**
+	 * Determine if the value is present in part of a list of array values.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @param  string    $value    The test value.
+	 * @param  array     $array    The values to test against.
+	 * @return bool                True if partial match is found; false if it is not.
+	 */
+	function in_array_partial( $value, $array ) {
+		$return = false;
+
+		foreach ( $array as $test_value ) {
+			if ( false !== strpos( $test_value, $value ) ) {
+				$return = true;
+			}
+		}
+
+		return $return;
 	}
 }
 
