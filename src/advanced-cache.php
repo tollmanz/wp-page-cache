@@ -174,9 +174,40 @@ class PageCache {
 	 * @return string                     The contents to echo to the screen.
 	 */
 	function generate_page( $page_content ) {
+		// Re-initialize the cache in case it was destroyed
+		wp_cache_init();
+
+		// Set up the groups again as they are reset in wp-settings.php
+		$this->configure_groups();
+
+		// Exit early if page content is determined to be uncacheable
+		if ( ! $this->is_response_cacheable( $page_content ) ) {
+			return $page_content;
+		}
+
 		$page_content .= '<!-- Cached at: ' . time() . ' -->';
 		wp_cache_set( $this->get_key()->get_page_key( $_SERVER ), $page_content, $this->get_cache_group(), 500 );
 		return $page_content;
+	}
+
+	/**
+	 * Determine if the content should be cached based on the output generated.
+	 *
+	 * After determining that a page should be cached as a result of the is_request_cacheable() method, Page Cache
+	 * allows WordPress to generate the content. During this generation phase, certain conditions can arise that suggest
+	 * that the response should not be cached (e.g., empty page, error conditions). This function defines those events.
+	 *
+	 * @since  0.1.0
+	 *
+	 * @param  string    $page_content    The generated content.
+	 * @return bool                       True if the response is cacheable. False if it is not.
+	 */
+	function is_response_cacheable( $page_content ) {
+		if ( empty( $page_content ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
