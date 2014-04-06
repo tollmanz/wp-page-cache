@@ -55,12 +55,35 @@ class PageCache {
 
 				// Verify that we have a usable object cache
 				if ( is_object( $wp_object_cache ) ) {
+					$this->configure_groups();
 					return true;
 				}
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Add the cache group key to different buckets.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @return void
+	 */
+	function configure_groups() {
+		if ( function_exists('wp_cache_add_no_remote_groups') ) {
+			wp_cache_add_no_remote_groups( array(
+				$this->get_cache_group()
+			) );
+		}
+
+		// Add the group as global allowing any site on a network to access it
+		if ( function_exists('wp_cache_add_global_groups') ) {
+			wp_cache_add_global_groups( array(
+				$this->get_cache_group()
+			) );
+		}
 	}
 
 	/**
