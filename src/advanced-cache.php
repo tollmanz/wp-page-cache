@@ -40,20 +40,6 @@ class PageCache {
 	}
 
 	/**
-	 * Generates and caches the page.
-	 *
-	 * @since  0.1.0.
-	 *
-	 * @param  string    $page_content    The contents produced by the page load.
-	 * @return string                     The contents to echo to the screen.
-	 */
-	function generate_page( $page_content ) {
-		$page_content .= '<!-- Cached at: ' . time() . ' -->';
-		wp_cache_set( $this->key->get_page_key( $_SERVER ), $page_content, $this->get_cache_group(), 500 );
-		return $page_content;
-	}
-
-	/**
 	 * Initialize the object cache for use with the page cache.
 	 *
 	 * WordPress initializes the object cache in wp-settings.php; however, it is initialized too late for use in the
@@ -81,6 +67,20 @@ class PageCache {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Generates and caches the page.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @param  string    $page_content    The contents produced by the page load.
+	 * @return string                     The contents to echo to the screen.
+	 */
+	function generate_page( $page_content ) {
+		$page_content .= '<!-- Cached at: ' . time() . ' -->';
+		wp_cache_set( $this->key->get_page_key( $_SERVER ), $page_content, $this->get_cache_group(), 500 );
+		return $page_content;
 	}
 
 	/**
