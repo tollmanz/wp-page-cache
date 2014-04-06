@@ -29,10 +29,6 @@ class PageCache {
 	 * @return PageCache|void
 	 */
 	function __construct() {
-		if ( ! $this->load_object_cache() ) {
-			return;
-		}
-
 		// Instantiate the CacheKey object
 		$this->key = new CacheKey();
 	}
@@ -65,6 +61,51 @@ class PageCache {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Determine if the request should be cached.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @return bool    False if request should not be cached. True if it should be cached.
+	 */
+	function is_request_cacheable() {
+		// If the object cache cannot be loaded, bail
+		if ( ! $this->load_object_cache() ) {
+			return false;
+		}
+
+		// File accessed directly?
+		if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+			return false;
+		}
+
+		// Never cache an endpoint
+		if ( in_array( basename( $_SERVER['SCRIPT_FILENAME'] ), array( 'xmlrpc.php' ) ) ) {
+			return false;
+		}
+
+		// Do not cache the JS generator
+		if ( strstr( $_SERVER['SCRIPT_FILENAME'], 'wp-includes/js' ) ) {
+			return false;
+		}
+
+		// POST requests should not be cached
+		if ( ! empty( $GLOBALS['HTTP_RAW_POST_DATA'] ) || ! empty( $_POST ) ) {
+			return false;
+		}
+
+		// Do not cache when a cookie for a cache exempt visitor is present
+		if ( ! empty( $_COOKIE ) && is_array( $_COOKIE ) ) {
+			foreach ( array_keys( $_COOKIE ) as $cookie ) {
+				if ( substr( $cookie, 0, 2 ) == 'wp' || substr( $cookie, 0, 9 ) == 'wordpress' ) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -275,12 +316,16 @@ class CacheKey {
 // Instantiate the page
 $PageCache = new PageCache();
 
-// Find the page
-$page = $PageCache->get_page( $PageCache->get_key()->get_page_key( $_SERVER ), $PageCache->get_cache_group() );
-// If not found, generate and cache the page
-if ( false === $page ) {
-	ob_start( array( $PageCache, 'generate_page' ) );
-} else {
-	echo $page;
-	exit();
+// Bail if the request cannot be cached
+if ( $PageCache->is_request_cacheable() ) {
+	// Find the page
+	$page = $PageCache->get_page( $PageCache->get_key()->get_page_key( $_SERVER ), $PageCache->get_cache_group() );
+
+	// If not found, generate and cache the page
+	if ( false === $page ) {
+		ob_start( array( $PageCache, 'generate_page' ) );
+	} else {
+		echo $page;
+		exit();
+	}
 }
