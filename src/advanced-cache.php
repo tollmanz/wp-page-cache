@@ -44,10 +44,44 @@ class PageCache {
 	 *
 	 * @since  0.1.0.
 	 *
-	 * @return PageCache
+	 * @return PageCache|void
 	 */
 	function __construct() {
+		if ( ! $this->load_object_cache() ) {
+			return;
+		}
+
 		ob_start( array( $this, 'generate_page' ) );
+	}
+
+	/**
+	 * Initialize the object cache for use with the page cache.
+	 *
+	 * WordPress initializes the object cache in wp-settings.php; however, it is initialized too late for use in the
+	 * advanced-cache.php file. As such, it must be initialized early to make an object cache available to for the page
+	 * cache to use.
+	 *
+	 * @since  0.1.0
+	 *
+	 * @return bool    True if the object cache can be initialized. False if it cannot be initialized.
+	 */
+	function load_object_cache() {
+		global $wp_object_cache;
+
+		// Make sure the object cache is loaded
+		if ( include_once( WP_CONTENT_DIR . '/object-cache.php' ) ) {
+			// Attempt to init the object cache if it is available
+			if ( function_exists( 'wp_cache_init' ) ) {
+				wp_cache_init();
+
+				// Verify that we have a usable object cache
+				if ( is_object( $wp_object_cache ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
