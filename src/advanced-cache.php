@@ -35,8 +35,6 @@ class PageCache {
 
 		// Instantiate the CacheKey object
 		$this->key = new CacheKey();
-
-		ob_start( array( $this, 'generate_page' ) );
 	}
 
 	/**
@@ -70,6 +68,19 @@ class PageCache {
 	}
 
 	/**
+	 * Get a previously cached page from the page cache.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @param  string    $key      The page cache key to lookup.
+	 * @param  string    $group    The group to lookup.
+	 * @return mixed               The page. False if not found.
+	 */
+	function get_page( $key, $group ) {
+		return wp_cache_get( $key, $group );
+	}
+
+	/**
 	 * Generates and caches the page.
 	 *
 	 * @since  0.1.0.
@@ -79,8 +90,19 @@ class PageCache {
 	 */
 	function generate_page( $page_content ) {
 		$page_content .= '<!-- Cached at: ' . time() . ' -->';
-		wp_cache_set( $this->key->get_page_key( $_SERVER ), $page_content, $this->get_cache_group(), 500 );
+		wp_cache_set( $this->get_key()->get_page_key( $_SERVER ), $page_content, $this->get_cache_group(), 500 );
 		return $page_content;
+	}
+
+	/**
+	 * Get the CacheKey object associated with the class.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @return CacheKey    The CacheKey object which contains the key and permalink information.
+	 */
+	function get_key() {
+		return $this->key;
 	}
 
 	/**
@@ -250,4 +272,15 @@ class CacheKey {
 	}
 }
 
-new PageCache();
+// Instantiate the page
+$PageCache = new PageCache();
+
+// Find the page
+$page = $PageCache->get_page( $PageCache->get_key()->get_page_key( $_SERVER ), $PageCache->get_cache_group() );
+
+// If not found, generate and cache the page
+if ( false === $page ) {
+	ob_start( array( $PageCache, 'generate_page' ) );
+} else {
+	echo $page;
+}
