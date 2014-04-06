@@ -99,7 +99,7 @@ class PageCache {
 		// Do not cache when a cookie for a cache exempt visitor is present
 		if ( ! empty( $_COOKIE ) && is_array( $_COOKIE ) ) {
 			foreach ( array_keys( $_COOKIE ) as $cookie ) {
-				if ( substr( $cookie, 0, 2 ) == 'wp' || substr( $cookie, 0, 9 ) == 'wordpress' ) {
+				if ( 'wp' === substr( $cookie, 0, 2 ) || 'wordpress' === substr( $cookie, 0, 9 ) ) {
 					return false;
 				}
 			}
