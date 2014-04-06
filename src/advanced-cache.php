@@ -113,6 +113,19 @@ class PageCache {
 			}
 		}
 
+		// If a page partially matches these values, it will result in a cache exemption
+		$path_exemptions = array(
+			'/wp-admin',
+			'/wp-comments-post.php',
+			'/wp-login.php',
+			'/wp-activate.php',
+			'/wp-mail.php',
+		);
+
+		if ( $this->in_array_partial( $this->get_key()->get_permalink( $_SERVER ), $path_exemptions ) ) {
+			return false;
+		}
+
 		return true;
 	}
 
