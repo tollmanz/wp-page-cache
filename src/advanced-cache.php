@@ -37,7 +37,7 @@ class PageCache {
 	 *
 	 * @var   string    A unique identifier for the page cache items.
 	 */
-	public $key_prefix = 'zdtpc:';
+	public $cache_group = 'zdtpc';
 
 	/**
 	 * Construct the object and set up configuration.
@@ -86,9 +86,8 @@ class PageCache {
 	 * @param  array     $server    The $_SERVER array. Must have 'HTTP_HOST', 'REQUEST_URI', and 'QUERY_STRING'.
 	 * @return string               MD5 hash of the permalink with the key prefix
 	 */
-	function generate_page_key( $server ) {
-		$this->page_key = $this->key_prefix . md5( $this->get_permalink( $server ) );
-		return $this->page_key;
+	function generate_page_key( $server ) {;
+		return md5( $this->get_permalink( $server ) );
 	}
 
 	/**
@@ -180,6 +179,17 @@ class PageCache {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Get the value of the page cache group.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @return string    The cache group value.
+	 */
+	function get_cache_group() {
+		return $this->cache_group;
 	}
 }
 
