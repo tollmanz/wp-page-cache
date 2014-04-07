@@ -22,6 +22,24 @@ class PageCache {
 	public $key;
 
 	/**
+	 * The response status header value.
+	 *
+	 * @since 0.1.0.
+	 *
+	 * @var  string    WordPress' response status value.
+	 */
+	public $status_header = '';
+
+	/**
+	 * The response status code value.
+	 *
+	 * @since 0.1.0.
+	 *
+	 * @var  string    WordPress' response code value.
+	 */
+	public $status_code = '';
+
+	/**
 	 * Construct the object and set up configuration.
 	 *
 	 * @since  0.1.0.
@@ -29,6 +47,16 @@ class PageCache {
 	 * @return PageCache|void
 	 */
 	function __construct() {
+		// Set a filter on the status header to get the value of the header for later use
+		global $wp_filter;
+		$wp_filter['status_header'][99]['zdtpc_status_header'] = array(
+			'function' => array(
+				$this,
+				'status_header'
+			),
+			'accepted_args' => 2
+		);
+
 		// Instantiate the CacheKey object
 		$this->key = new CacheKey();
 	}
@@ -230,6 +258,26 @@ class PageCache {
 	 */
 	function get_cache_group() {
 		return $this->cache_group;
+	}
+
+	/**
+	 * Records the values of the status header and status code.
+	 *
+	 * WordPress uses `status_header()` to set the value of the header status and code. When a determination is made
+	 * whether or not the page content should be cached, these values are needed. For instance, 500 level responses
+	 * should not be cached, but only if these values are known can the determination be made. This function saves these
+	 * values when they are set and allows the class to reference them later.
+	 *
+	 * @since  0.1.0.
+	 *
+	 * @param  string    $status_header    The value of the status header.
+	 * @param  string    $status_code      The status code value.
+	 * @return string                      The status header value, which is unchanged by this function.
+	 */
+	function status_header( $status_header, $status_code ) {
+		$this->status_header = $status_header;
+		$this->status_code   = $status_code;
+		return $status_header;
 	}
 
 	/**
