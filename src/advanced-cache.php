@@ -231,7 +231,13 @@ class PageCache {
 	 * @return bool                       True if the response is cacheable. False if it is not.
 	 */
 	function is_response_cacheable( $page_content ) {
+		// Do not cache a blank page
 		if ( empty( $page_content ) ) {
+			return false;
+		}
+
+		// Do not cache 500 level responses
+		if ( $this->status_code >= 500 && $this->status_code < 600 ) {
 			return false;
 		}
 
